@@ -1,9 +1,4 @@
- resources:
-  repositories:
-  - repository: openvino_tensorflow
-    type: github
-    endpoint: barykrg
-    name: barykrg/openvino_tensorflow
+
     
  pool:
   name: 'Default'
@@ -20,11 +15,7 @@
       rm -rf $(BUILD_DIR) ; mkdir $(BUILD_DIR)
       
    
-   - checkout: self
-     clean: true
-     lfs: false
-     path: openvino_tensorflow
- 
+
    - script: |
       pip install -U pip yapf==0.26.0 pytest psutil keras==2.3.1
      displayName: "Setup" 
