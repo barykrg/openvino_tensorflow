@@ -12,9 +12,8 @@
  steps:
  
    - script: |
-      rm -rf $(WORK_DIR) ; mkdir $(WORK_DIR)
-      rm -rf $(BUILD_DIR) ; mkdir $(BUILD_DIR)
-      
+      rm -rf /opt/intel/temp ; mkdir /opt/intel/temp
+     displayName: "Directory Creation and removal" 
    
 
    - script: |
