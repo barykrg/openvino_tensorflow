@@ -3,7 +3,7 @@
   - repository: openvino_tensorflow
     type: github
     endpoint: barykrg
-    name: openvino_tensorflow
+    name: barykrg/openvino_tensorflow
     
  pool:
   name: 'Default'
