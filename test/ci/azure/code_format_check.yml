@@ -28,10 +28,44 @@
      displayName: "Build"
      
    - script: |
-      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
-      ./maint/check-code-format.sh
+      source ${OV_DIR}/bin/setupvars.sh
+      source ${OVTF_DIR}/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
+      --artifacts ${OVTF_DIR}/build_cmake/artifacts/ --test_cpp
+      exit_code=$?
+      echo "Exit Result for tf_ov C++ Tests is ${exit_code}"
      workingDirectory: $(WORK_DIR) 
-     displayName: "Code format check"
+     displayName: "tf_ov C++ Tests"
+
+   - script: |
+      source ${OV_DIR}/bin/setupvars.sh
+      source ${OVTF_DIR}/build_cmake/venv-tf-py3/bin/activate
+      cd ${OVTF_DIR}/test/ci/azure/
+      bash run_inception_v3.sh ${OVTF_DIR}/build_cmake/artifacts
+      exit_code=$?
+      echo "Exit Result for C++ Inference Example is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "C++ Inference Example"
+
+   - script: |
+      source ${OV_DIR}/bin/setupvars.sh
+      source ${OVTF_DIR}/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
+      --artifacts ${OVTF_DIR}/build_cmake/artifacts --test_tf_python
+      exit_code=$?
+      echo "Exit Result for TF Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "TF Python Tests ${OPENVINO_TF_BACKEND}"
+
+   - script: |
+      source ${OV_DIR}/bin/setupvars.sh
+      source ${OVTF_DIR}/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd`:`pwd`/tools:`pwd`/examples python3 test/ci/azure/test_runner.py \
+      --artifacts ${OVTF_DIR}/build_cmake/artifacts --test_python
+      exit_code=$?
+      echo "Exit Result for Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "OVTF Python Tests ${OPENVINO_TF_BACKEND}"
      
    - script: |
       rm -rf *
