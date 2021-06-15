@@ -21,7 +21,7 @@
      displayName: "Setup" 
     
    - script: |
-      cat usr/lib/os-release
+      cat /usr/lib/os-release
      workingDirectory: $(WORK_DIR) 
      displayName: "Build"
      
