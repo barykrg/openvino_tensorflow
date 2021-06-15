@@ -21,12 +21,7 @@
      displayName: "Setup" 
     
    - script: |
-      export OPENVINO_TF_BACKEND=CPU
-      echo $(WORK_DIR)
-      git clone  https://github.com/openvinotoolkit/openvino_tensorflow.git /opt/intel/openvino_tensorflow
-      git submodule init
-      git submodule update
-      python3 build_ovtf.py --use_tensorflow_from_location=/home/tf_m1 --use_openvino_from_location=$(OV_LOCATION) --disable_packaging_openvino_libs --cxx11_abi_version=1
+      cat usr/lib/os-release
      workingDirectory: $(WORK_DIR) 
      displayName: "Build"
      
