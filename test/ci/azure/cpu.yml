@@ -2,6 +2,7 @@
   repositories:
   - repository: openvino_tensorflow
     type: github
+    endpoint: barun repo 6
     name: barykrg/openvino_tensorflow
     
  pool:
