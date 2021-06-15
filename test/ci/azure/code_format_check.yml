@@ -21,7 +21,7 @@
      displayName: "Setup" 
     
    - script: |
-      RUN git clone  https://github.com/openvinotoolkit/openvino_tensorflow.git $(WORK_DIR)
+      git clone  https://github.com/openvinotoolkit/openvino_tensorflow.git $(WORK_DIR)
       cd $(WORK_DIR) && git submodule init
       cd $(WORK_DIR) && git submodule update --recursive
       cd $(WORK_DIR) && python3.8 build_ovtf.py --use_tensorflow_from_location=${TF_DIR} --use_openvino_from_location=${OV_DIR} --disable_packaging_openvino_libs --cxx11_abi_version=1
