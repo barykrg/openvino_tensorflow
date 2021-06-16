@@ -30,6 +30,8 @@
      displayName: "Build"
      
    - script: |
+      export OPENVINO_TF_BACKEND=MYRIAD
+      export NGRAPH_TF_UTEST_RTOL=0.0001
       source ${OV_DIR}/bin/setupvars.sh
       source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
       PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
@@ -40,7 +42,8 @@
      displayName: "tf_ov C++ Tests"
 
    - script: |
-      export OPENVINO_TF_BACKEND=GPU
+      export OPENVINO_TF_BACKEND=MYRIAD
+      export NGRAPH_TF_UTEST_RTOL=0.0001
       source ${OV_DIR}/bin/setupvars.sh
       source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
       cd ${WORK_DIR}/test/ci/azure/
@@ -51,7 +54,8 @@
      displayName: "C++ Inference Example"
 
    - script: |
-      export OPENVINO_TF_BACKEND=GPU
+      export OPENVINO_TF_BACKEND=MYRIAD
+      export NGRAPH_TF_UTEST_RTOL=0.0001
       source ${OV_DIR}/bin/setupvars.sh
       source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
       PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
@@ -62,7 +66,8 @@
      displayName: "TF Python Tests ${OPENVINO_TF_BACKEND}"
 
    - script: |
-      export OPENVINO_TF_BACKEND=GPU
+      export OPENVINO_TF_BACKEND=MYRIAD
+      export NGRAPH_TF_UTEST_RTOL=0.0001
       source ${OV_DIR}/bin/setupvars.sh
       source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
       PYTHONPATH=`pwd`:`pwd`/tools:`pwd`/examples python3 test/ci/azure/test_runner.py \
