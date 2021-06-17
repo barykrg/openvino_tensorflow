@@ -17,7 +17,7 @@ declare SRC_DIRS=${1:-openvino_tensorflow examples experimental test logging too
 # For this reason, this script specifies the exact version of clang-format to be used.
 # Similarly for python/yapf, we shall use Python 3 and yapf 0.26.0
 
-declare CLANG_FORMAT_BASENAME="clang-format-3.9"
+declare CLANG_FORMAT_BASENAME="clang-format"
 declare REQUIRED_CLANG_FORMAT_VERSION=3.9
 declare YAPF_FORMAT_BASENAME="yapf"
 declare REQUIRED_YAPF_FORMAT_VERSION=0.26.0
