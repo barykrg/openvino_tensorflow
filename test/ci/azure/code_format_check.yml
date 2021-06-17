@@ -37,6 +37,13 @@
      displayName: "Build"
      
    - script: |
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      pip install -U $(WORK_DIR)/build_cmake/artifacts/tensorflow/tensorflow-*.whl
+      pip install --no-deps -U $(WORK_DIR)/build_cmake/artifacts/openvino_tensorflow*.whl
+     workingDirectory: $(WORK_DIR) 
+     displayName: "Install"
+    
+   - script: |
       export OPENVINO_TF_BACKEND=CPU
       source $(OV_LOCATION)/bin/setupvars.sh
       source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
@@ -57,13 +64,6 @@
       echo "Exit Result for C++ Inference Example is ${exit_code}"
      workingDirectory: $(WORK_DIR) 
      displayName: "CPU C++ Inference Example"
-     
-   - script: |
-      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
-      pip install -U $(WORK_DIR)/build_cmake/artifacts/tensorflow/tensorflow-*.whl
-      pip install --no-deps -U $(WORK_DIR)/build_cmake/artifacts/openvino_tensorflow*.whl
-     workingDirectory: $(WORK_DIR) 
-     displayName: "Install"
    
    - script: |
       export OPENVINO_TF_BACKEND=CPU
