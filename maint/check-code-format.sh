@@ -18,7 +18,6 @@ declare SRC_DIRS=${1:-openvino_tensorflow examples experimental test logging too
 # Similarly for python/yapf, we shall use Python 3 and yapf 0.26.0
 
 declare CLANG_FORMAT_BASENAME="clang-format"
-declare REQUIRED_CLANG_FORMAT_VERSION=3.9
 declare YAPF_FORMAT_BASENAME="yapf"
 declare REQUIRED_YAPF_FORMAT_VERSION=0.26.0
 
@@ -51,8 +50,6 @@ if ! CLANG_FORMAT_PROG="$(which "${CLANG_FORMAT_BASENAME}")"; then
     bash_lib_die "Unable to find program  ${CLANG_FORMAT_BASENAME}" >&2
 fi
 
-format_lib_verify_version "${CLANG_FORMAT_PROG}" "${REQUIRED_CLANG_FORMAT_VERSION}" "CLANG"
-bash_lib_status "Verified that '${CLANG_FORMAT_PROG}' has version '${REQUIRED_CLANG_FORMAT_VERSION}'"
 
 declare -a FAILED_FILES_CLANG=()
 declare NUM_FILES_CHECKED_CLANG=0
