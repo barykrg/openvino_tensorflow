@@ -1,76 +1,191 @@
-
+ resources:
+  repositories:
+  - repository: openvino_tensorflow
+    type: github
+    endpoint: barun repo 6
+    name: barykrg/openvino_tensorflow
     
  pool:
   name: 'Default'
   
  variables:
-    WORK_DIR: /opt/intel/temp/openvino_tensorflow
+    WORK_DIR: $(Pipeline.Workspace)/openvino_tensorflow
     BUILD_DIR: $(WORK_DIR)/build
-    OV_DIR: /opt/intel/openvino_2021.3.394/
-    TF_DIR: /home/tf_m1
-    OPENVINO_TF_BACKEND: MYRIAD
-    NGRAPH_TF_UTEST_RTOL: 0.0001
+    OV_LOCATION: /opt/intel/openvino_2021.3.394/
     
  steps:
  
    - script: |
-      rm -rf /opt/intel/temp ; mkdir /opt/intel/temp
-     displayName: "Directory Creation and removal" 
+      rm -rf $(WORK_DIR) ; mkdir $(WORK_DIR)
+      rm -rf $(BUILD_DIR) ; mkdir $(BUILD_DIR)
+      
    
-
+   - checkout: self
+     clean: true
+     lfs: false
+     path: openvino_tensorflow
+ 
    - script: |
       pip install -U pip yapf==0.26.0 pytest psutil keras==2.3.1
      displayName: "Setup" 
     
    - script: |
-      git clone  https://github.com/openvinotoolkit/openvino_tensorflow.git $(WORK_DIR)
-      cd $(WORK_DIR) && git submodule init
-      cd $(WORK_DIR) && git submodule update --recursive
-      cd $(WORK_DIR) && python3.8 build_ovtf.py --use_tensorflow_from_location=${TF_DIR} --use_openvino_from_location=${OV_DIR} --disable_packaging_openvino_libs --cxx11_abi_version=1
+      git submodule init
+      git submodule update
+      python3 build_ovtf.py --use_tensorflow_from_location=/home/tf_m1 --use_openvino_from_location=$(OV_LOCATION) --disable_packaging_openvino_libs --cxx11_abi_version=1
+     workingDirectory: $(WORK_DIR) 
      displayName: "Build"
      
    - script: |
-      source ${OV_DIR}/bin/setupvars.sh
-      source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
-      pwd
-      echo "check above!!"
+      export OPENVINO_TF_BACKEND=CPU
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
       PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
-      --artifacts ${WORK_DIR}/build_cmake/artifacts/ --test_cpp
+      --artifacts $(WORK_DIR)/build_cmake/artifacts/ --test_cpp
       exit_code=$?
       echo "Exit Result for tf_ov C++ Tests is ${exit_code}"
      workingDirectory: $(WORK_DIR) 
-     displayName: "tf_ov C++ Tests"
-
+     displayName: "CPU tf_ov C++ Tests"
+     
    - script: |
-      source ${OV_DIR}/bin/setupvars.sh
-      source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
-      cd ${WORK_DIR}/test/ci/azure/
-      bash run_inception_v3.sh ${WORK_DIR}/build_cmake/artifacts
+      export OPENVINO_TF_BACKEND=CPU
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      cd test/ci/azure/      
+      bash run_inception_v3.sh $(WORK_DIR)/build_cmake/artifacts/
       exit_code=$?
       echo "Exit Result for C++ Inference Example is ${exit_code}"
      workingDirectory: $(WORK_DIR) 
-     displayName: "C++ Inference Example"
-
+     displayName: "CPU C++ Inference Example"
+     
    - script: |
-      source ${OV_DIR}/bin/setupvars.sh
-      source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
-      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
-      --artifacts ${WORK_DIR}/build_cmake/artifacts --test_tf_python
-      exit_code=$?
-      echo "Exit Result for TF Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      pip install -U $(WORK_DIR)/build_cmake/artifacts/tensorflow/tensorflow-*.whl
+      pip install --no-deps -U $(WORK_DIR)/build_cmake/artifacts/openvino_tensorflow*.whl
      workingDirectory: $(WORK_DIR) 
-     displayName: "TF Python Tests ${OPENVINO_TF_BACKEND}"
-
+     displayName: "Install"
+   
    - script: |
-      source ${OV_DIR}/bin/setupvars.sh
-      source ${WORK_DIR}/build_cmake/venv-tf-py3/bin/activate
+      export OPENVINO_TF_BACKEND=CPU
+      pip install keras
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
       PYTHONPATH=`pwd`:`pwd`/tools:`pwd`/examples python3 test/ci/azure/test_runner.py \
-      --artifacts ${WORK_DIR}/build_cmake/artifacts --test_python
+      --artifacts $(WORK_DIR)/build_cmake/artifacts --test_python
       exit_code=$?
       echo "Exit Result for Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
      workingDirectory: $(WORK_DIR) 
-     displayName: "OVTF Python Tests ${OPENVINO_TF_BACKEND}"
+     displayName: "CPU python:  Python Tests ${OPENVINO_TF_BACKEND}"
      
+   - script: |
+      export OPENVINO_TF_BACKEND=CPU
+      pip install keras
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
+        --artifacts $(WORK_DIR)/build_cmake/artifacts --test_tf_python
+      exit_code=$?
+      echo "Exit Result for TF Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+     workingDirectory: $(WORK_DIR)   
+     displayName: "CPU python: TF Python Tests ${OPENVINO_TF_BACKEND}"  
+
+   - script: |
+      export OPENVINO_TF_BACKEND=GPU
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
+      --artifacts $(WORK_DIR)/build_cmake/artifacts/ --test_cpp
+      exit_code=$?
+      echo "Exit Result for tf_ov C++ Tests is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "GPU tf_ov C++ Tests"
+     
+   - script: |
+      export OPENVINO_TF_BACKEND=GPU
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      cd test/ci/azure/      
+      bash run_inception_v3.sh $(WORK_DIR)/build_cmake/artifacts/
+      exit_code=$?
+      echo "Exit Result for C++ Inference Example is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "GPU C++ Inference Example"
+     
+   
+   - script: |
+      export OPENVINO_TF_BACKEND=GPU
+      pip install keras
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd`:`pwd`/tools:`pwd`/examples python3 test/ci/azure/test_runner.py \
+      --artifacts $(WORK_DIR)/build_cmake/artifacts --test_python
+      exit_code=$?
+      echo "Exit Result for Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "GPU python:  Python Tests ${OPENVINO_TF_BACKEND}"
+     
+   - script: |
+      export OPENVINO_TF_BACKEND=GPU
+      pip install keras
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
+        --artifacts $(WORK_DIR)/build_cmake/artifacts --test_tf_python
+      exit_code=$?
+      echo "Exit Result for TF Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+     workingDirectory: $(WORK_DIR)   
+     displayName: "GPU python: TF Python Tests ${OPENVINO_TF_BACKEND}"
+
+   - script: |
+      export OPENVINO_TF_BACKEND=MYRIAD
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
+      --artifacts $(WORK_DIR)/build_cmake/artifacts/ --test_cpp
+      exit_code=$?
+      echo "Exit Result for tf_ov C++ Tests is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "MYRIAD tf_ov C++ Tests"
+     
+   - script: |
+      export OPENVINO_TF_BACKEND=MYRIAD
+      export NGRAPH_TF_UTEST_RTOL=0.0001
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      cd test/ci/azure/      
+      bash run_inception_v3.sh $(WORK_DIR)/build_cmake/artifacts/
+      exit_code=$?
+      echo "Exit Result for C++ Inference Example is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "MYRIAD C++ Inference Example"
+     
+   
+   - script: |
+      export OPENVINO_TF_BACKEND=MYRIAD
+      export NGRAPH_TF_UTEST_RTOL=0.0001
+      pip install keras
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd`:`pwd`/tools:`pwd`/examples python3 test/ci/azure/test_runner.py \
+      --artifacts $(WORK_DIR)/build_cmake/artifacts --test_python
+      exit_code=$?
+      echo "Exit Result for Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+     workingDirectory: $(WORK_DIR) 
+     displayName: "MYRIAD python:  Python Tests ${OPENVINO_TF_BACKEND}"
+     
+   - script: |
+      export OPENVINO_TF_BACKEND=MYRIAD
+      export NGRAPH_TF_UTEST_RTOL=0.0001
+      pip install keras
+      source $(OV_LOCATION)/bin/setupvars.sh
+      source $(WORK_DIR)/build_cmake/venv-tf-py3/bin/activate
+      PYTHONPATH=`pwd` python3 test/ci/azure/test_runner.py \
+        --artifacts $(WORK_DIR)/build_cmake/artifacts --test_tf_python
+      exit_code=$?
+      echo "Exit Result for TF Python Tests OPENVINO_TF_BACKEND is ${exit_code}"
+     workingDirectory: $(WORK_DIR)   
+     displayName: "MYRIAD python: TF Python Tests ${OPENVINO_TF_BACKEND}"
+    
    - script: |
       rm -rf *
      displayName: "Cleanup"   
