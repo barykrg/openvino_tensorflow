@@ -7,7 +7,8 @@
     
  pool:
   name: 'Default'
-  
+  demands:
+    - agent.name -equals ubuntu18agent
  variables:
     WORK_DIR: $(Pipeline.Workspace)/openvino_tensorflow
     BUILD_DIR: $(WORK_DIR)/build
